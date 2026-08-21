@@ -1,0 +1,42 @@
+services:
+  api:
+    build: .
+    ports:
+      - "${API_PORT:-8080}:8080"
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-tree_tracker}:${POSTGRES_PASSWORD:-tree_tracker}@postgres:5432/${POSTGRES_DB:-tree_tracker}?sslmode=disable
+      PORT: "8080"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  migrate:
+    image: migrate/migrate:v4.19.1
+    command:
+      - "-path=/migrations"
+      - "-database=postgres://${POSTGRES_USER:-tree_tracker}:${POSTGRES_PASSWORD:-tree_tracker}@postgres:5432/${POSTGRES_DB:-tree_tracker}?sslmode=disable"
+      - "up"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/migrations:ro
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tree_tracker}
+      POSTGRES_USER: ${POSTGRES_USER:-tree_tracker}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tree_tracker}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tree_tracker} -d ${POSTGRES_DB:-tree_tracker}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

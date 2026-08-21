@@ -1,0 +1,11 @@
+CREATE TABLE plants (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    epoch INTEGER NOT NULL,
+    phase INTEGER NOT NULL,
+    phase_progress INTEGER NOT NULL,
+    branching INTEGER NOT NULL,
+    density INTEGER NOT NULL,
+    curvature INTEGER NOT NULL,
+    vitality INTEGER NOT NULL,
+    seed BIGINT NOT NULL
+);
