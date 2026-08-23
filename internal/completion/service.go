@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"time"
 
+	completion_errors "github.com/MikebangSfilya/tree-tracker/pkg/completion errors"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -19,6 +20,7 @@ type CompletionService1 struct {
 
 type CompletionRepository interface {
 	Complete(ctx context.Context, completion Completion) (Completion, error)
+	GetCompletions(ctx context.Context, userID uuid.UUID) ([]Completion, error)
 }
 
 type RoutineFetcher interface {
@@ -41,7 +43,7 @@ func (s *CompletionService1) RoutineComplete(ctx context.Context, input Complete
 
 	if !rule.Active {
 		s.logger.Warn("completion rule is not active")
-		return Completion{}, fmt.Errorf("active already completed: %w", ErrAlreadyCompleted)
+		return Completion{}, fmt.Errorf("active already completed: %w", completion_errors.ErrAlreadyCompleted)
 	}
 
 	occurrenceKey := generateOccurrenceKey(rule.Recurrence, time.Now().UTC())
@@ -57,10 +59,10 @@ func (s *CompletionService1) RoutineComplete(ctx context.Context, input Complete
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 			if rule.Recurrence == "once" {
-				return Completion{}, fmt.Errorf("completion rule already completed: %w", ErrAlreadyCompleted)
+				return Completion{}, fmt.Errorf("completion rule already completed: %w", completion_errors.ErrAlreadyCompleted)
 			}
 			if rule.Recurrence == "daily" {
-				return Completion{}, fmt.Errorf("completion rule already completed: %w", ErrAlreadyCompletedToday)
+				return Completion{}, fmt.Errorf("completion rule already completed: %w", completion_errors.ErrAlreadyCompletedToday)
 			}
 		}
 
@@ -68,6 +70,15 @@ func (s *CompletionService1) RoutineComplete(ctx context.Context, input Complete
 		return Completion{}, fmt.Errorf("failed to save completion: %w", err)
 	}
 	return result, nil
+}
+
+func (s *CompletionService1) GetCompletions(ctx context.Context, userID uuid.UUID) ([]Completion, error) {
+	completions, err := s.repository.GetCompletions(ctx, userID)
+	if err != nil {
+		s.logger.Error("failed to get completions")
+		return nil, fmt.Errorf("failed to get completions: %w", err)
+	}
+	return completions, nil
 }
 
 func generateOccurrenceKey(recurrence string, now time.Time) string {

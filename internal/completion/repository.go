@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -44,4 +45,32 @@ func (s *CompletionRepository1) Complete(ctx context.Context, completion Complet
 	}
 
 	return result, nil
+}
+
+func (s *CompletionRepository1) GetCompletions(ctx context.Context, userID uuid.UUID) ([]Completion, error) {
+	query := `
+		SELECT id, user_id, routine_id, occurrence_key, completed_at FROM completions WHERE user_id = $1;
+`
+	rows, err := s.Query(ctx, query, userID)
+	if err != nil {
+		s.logger.Error("failed to get completions", "err", err)
+		return nil, fmt.Errorf("get completions: %w", err)
+	}
+	defer rows.Close()
+	var completions []Completion
+	for rows.Next() {
+		var completion Completion
+		if err = rows.Scan(&completion.ID,
+			&completion.UserID,
+			&completion.RoutineID,
+			&completion.OccurrenceKey,
+			&completion.CompletedAt); err != nil {
+			s.logger.Error("failed to scan completions", "err", err)
+			return nil, fmt.Errorf("get completions: %w", err)
+		}
+		completions = append(completions, completion)
+	}
+
+	return completions, nil
+
 }
