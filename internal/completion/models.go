@@ -1,15 +1,9 @@
 package completion
 
 import (
-	"errors"
 	"time"
 
 	"github.com/google/uuid"
-)
-
-var (
-	ErrAlreadyCompleted      = errors.New("routine is already completed")
-	ErrAlreadyCompletedToday = errors.New("routine had already been completed today")
 )
 
 type Completion struct {

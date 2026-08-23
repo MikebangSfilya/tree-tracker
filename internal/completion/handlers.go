@@ -2,11 +2,10 @@ package completion
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"log/slog"
 	"net/http"
 
+	pkg_response "github.com/MikebangSfilya/tree-tracker/pkg/response"
 	"github.com/google/uuid"
 )
 
@@ -29,11 +28,11 @@ func NewCompletionHandler(completionService CompletionService) *CompletionHandle
 func (h *CompletionHandler) RoutineComplete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	idStr := r.PathValue("id")
-
+	responseHandler := pkg_response.NewHTTPResponseHandler(h.logger, w)
 	routineID, err := uuid.Parse(idStr)
 	if err != nil {
 		h.logger.Error("failed to parse routineID", slog.String("id", idStr), slog.String("error", err.Error()))
-		writeError(w, http.StatusBadRequest, "failed to parse id", err)
+		responseHandler.ErrorResponse(err)
 		return
 	}
 
@@ -43,52 +42,14 @@ func (h *CompletionHandler) RoutineComplete(w http.ResponseWriter, r *http.Reque
 	completion, err := h.completionService.RoutineComplete(ctx, input)
 	if err != nil {
 		h.logger.Error("failed to complete routine")
-		errorResponse(w, err)
+		responseHandler.ErrorResponse(err)
 		return
 	}
 
-	writeJSON(w,
+	responseHandler.WriteJSON(
 		CompletionResponse{
 			RoutineID:   completion.RoutineID,
 			CompletedAt: completion.CompletedAt,
 		},
 		http.StatusOK)
-
-}
-
-func writeJSON(w http.ResponseWriter, data any, statusCode int) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-	_ = json.NewEncoder(w).Encode(data)
-
-}
-
-func errorResponse(w http.ResponseWriter, err error) {
-	var (
-		statusCode int
-		msg        string
-	)
-
-	switch {
-	case errors.Is(err, ErrAlreadyCompleted):
-		statusCode = http.StatusConflict
-		msg = "routine is already completed"
-	case errors.Is(err, ErrAlreadyCompletedToday):
-		statusCode = http.StatusConflict
-		msg = "routine had already been completed today"
-	default:
-		statusCode = http.StatusInternalServerError
-		msg = "failed to complete routine"
-	}
-
-	writeError(w, statusCode, msg, err)
-}
-
-func writeError(w http.ResponseWriter, code int, message string, err error) {
-	response := map[string]string{
-		"error":   err.Error(),
-		"message": message,
-	}
-
-	writeJSON(w, response, code)
 }
