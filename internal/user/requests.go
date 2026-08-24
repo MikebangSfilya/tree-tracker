@@ -1,9 +1,8 @@
 package user
 
-
 type CreateReq struct {
 	Username string `json:"username"`
-	Email	 string `json:"email"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
