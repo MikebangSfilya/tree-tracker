@@ -1,17 +1,19 @@
 package routine
 
 type CreateRequest struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
 	Category    string `json:"category"`
+	Type        string `json:"type"`
 	Weight      int    `json:"weight"`
 	Coefficient int    `json:"coefficient"`
+	Temporary   bool   `json:"temporary"`
+	Disposable  bool   `json:"disposable"`
 }
 
 type UpdateRequest struct {
-	Name        *string `json:"name"`
-	Description *string `json:"description"`
 	Category    *string `json:"category"`
+	Type        *string `json:"type"`
 	Weight      *int    `json:"weight"`
 	Coefficient *int    `json:"coefficient"`
+	Temporary   *bool   `json:"temporary"`
+	Disposable  *bool   `json:"disposable"`
 }

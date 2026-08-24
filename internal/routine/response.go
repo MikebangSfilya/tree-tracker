@@ -1,28 +1,28 @@
 package routine
 
-import "time"
-
 type Response struct {
-	ID          int64     `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	Category    string    `json:"category"`
-	Weight      int       `json:"weight"`
-	Coefficient int       `json:"coefficient"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
+	Category    string   `json:"category"`
+	Type        string   `json:"type"`
+	Weight      int      `json:"weight"`
+	Coefficient int      `json:"coefficient"`
+	TimeType    TimeType `json:"timeType"`
+}
+
+type TimeType struct {
+	Temporary  bool `json:"temporary"`
+	Disposable bool `json:"disposable"`
 }
 
 func NewResponse(routine Routine) Response {
 	return Response{
-		ID:          routine.ID,
-		Name:        routine.Name,
-		Description: routine.Description,
 		Category:    routine.Category,
+		Type:        routine.Type,
 		Weight:      routine.Weight,
 		Coefficient: routine.Coefficient,
-		CreatedAt:   routine.CreatedAt,
-		UpdatedAt:   routine.UpdatedAt,
+		TimeType: TimeType{
+			Temporary:  routine.Temporary,
+			Disposable: routine.Disposable,
+		},
 	}
 }
 

@@ -4,11 +4,12 @@ import "time"
 
 type Routine struct {
 	ID          int64
-	Name        string
-	Description string
 	Category    string
+	Type        string
 	Weight      int
 	Coefficient int
+	Temporary   bool
+	Disposable  bool
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
