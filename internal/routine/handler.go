@@ -18,6 +18,35 @@ func NewHandler(service Service) *Handler {
 	}
 }
 
+func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
+	mux.HandleFunc("/api/routines", h.routines)
+	mux.HandleFunc("/api/routines/", h.routine)
+}
+
+func (h *Handler) routines(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.GetAll(w, r)
+	case http.MethodPost:
+		h.Create(w, r)
+	default:
+		w.Header().Set("Allow", "GET, POST")
+		writeError(w, http.StatusMethodNotAllowed, errors.New("method not allowed"))
+	}
+}
+
+func (h *Handler) routine(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPatch:
+		h.Update(w, r)
+	case http.MethodDelete:
+		h.Delete(w, r)
+	default:
+		w.Header().Set("Allow", "PATCH, DELETE")
+		writeError(w, http.StatusMethodNotAllowed, errors.New("method not allowed"))
+	}
+}
+
 func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	routines, err := h.service.GetAll(r.Context())
 	if err != nil {
