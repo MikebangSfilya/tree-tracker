@@ -6,11 +6,10 @@ import (
 	"github.com/google/uuid"
 )
 
-
 type User struct {
-	ID 		  uuid.UUID
+	ID        uuid.UUID
 	Username  string
-	Email 	  string
+	Email     string
 	Password  []byte
 	CreatedAt time.Time
 }

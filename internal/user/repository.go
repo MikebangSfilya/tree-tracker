@@ -11,16 +11,13 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-
 type RepoDB struct {
 	db *sql.DB
 }
 
-
 func NewRepoDB(db *sql.DB) *RepoDB {
 	return &RepoDB{db: db}
 }
-
 
 func (r RepoDB) CreateUser(ctx context.Context, username, email string, password []byte) (*uuid.UUID, error) {
 	q := `
@@ -43,7 +40,6 @@ func (r RepoDB) CreateUser(ctx context.Context, username, email string, password
 
 	return &id, nil
 }
-
 
 func (r RepoDB) GetUser(ctx context.Context, email string) (*User, error) {
 	q := `
@@ -72,14 +68,13 @@ func (r RepoDB) GetUser(ctx context.Context, email string) (*User, error) {
 	return &user, nil
 }
 
-
 func (r RepoDB) DeleteUser(ctx context.Context, email string) error {
 	q := `
 		DELETE FROM users
 		WHERE email = $1;
 	`
 
-	res, err := r.db.ExecContext(ctx, q, email);
+	res, err := r.db.ExecContext(ctx, q, email)
 	if err != nil {
 		return err
 	}

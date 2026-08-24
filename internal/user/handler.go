@@ -9,13 +9,11 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-
 type ServiceMethods interface {
 	Register(ctx context.Context, username, email, password string) (id string, err error)
 	GetUser(ctx context.Context, email string) (user *User, err error)
 	DeleteUser(ctx context.Context, email string) (err error)
 }
-
 
 type Handler struct {
 	logger *slog.Logger
@@ -23,11 +21,9 @@ type Handler struct {
 	srv ServiceMethods
 }
 
-
 func NewHandler(srv ServiceMethods) *Handler {
 	return &Handler{srv: srv}
 }
-
 
 func (h Handler) Routes(r chi.Router) {
 	// assuming basic route is `/api/`
@@ -35,7 +31,6 @@ func (h Handler) Routes(r chi.Router) {
 	r.Get("/user", h.getUser)
 	r.Delete("/user", h.deleteUser)
 }
-
 
 func (h Handler) register(w http.ResponseWriter, r *http.Request) {
 	var userData CreateReq
@@ -63,7 +58,7 @@ func (h Handler) register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	var idResp = CreateResp{ID: id}
 	err = json.NewEncoder(w).Encode(idResp)
 	if err != nil {
@@ -75,7 +70,6 @@ func (h Handler) register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
 
 func (h Handler) getUser(w http.ResponseWriter, r *http.Request) {
 	var emailData GetAndDeleteReq
@@ -100,9 +94,9 @@ func (h Handler) getUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var userResp = GetResp{
-		ID: 	   user.ID.String(),
+		ID:        user.ID.String(),
 		Username:  user.Username,
-		Email: 	   user.Email,
+		Email:     user.Email,
 		CreatedAt: user.CreatedAt.String(),
 	}
 	err = json.NewEncoder(w).Encode(userResp)
@@ -115,7 +109,6 @@ func (h Handler) getUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
 
 func (h Handler) deleteUser(w http.ResponseWriter, r *http.Request) {
 	var emailData GetAndDeleteReq
