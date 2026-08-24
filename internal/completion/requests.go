@@ -3,13 +3,13 @@ package completion
 import "github.com/google/uuid"
 
 type CompleteInput struct {
-	UserID    uuid.UUID
-	RoutineID uuid.UUID
+	UserId    uuid.UUID
+	RoutineId int64
 }
 
-func NewCompleteInput(userID uuid.UUID, routineID uuid.UUID) CompleteInput {
+func NewCompleteInput(userId uuid.UUID, routineId int64) CompleteInput {
 	return CompleteInput{
-		UserID:    userID,
-		RoutineID: routineID,
+		UserId:    userId,
+		RoutineId: routineId,
 	}
 }

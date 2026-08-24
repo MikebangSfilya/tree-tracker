@@ -1,4 +1,4 @@
-package completion_errors
+package completionErrors
 
 import "errors"
 

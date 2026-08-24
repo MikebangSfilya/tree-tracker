@@ -7,15 +7,15 @@ import (
 )
 
 type Completion struct {
-	ID            uuid.UUID `json:"id"`
-	UserID        uuid.UUID `json:"userId"`
-	RoutineID     uuid.UUID `json:"routineId"`
+	Id            uuid.UUID `json:"id"`
+	UserId        uuid.UUID `json:"userId"`
+	RoutineId     int64     `json:"routineId"`
 	OccurrenceKey string    `json:"occurrenceKey"`
 	CompletedAt   time.Time `json:"completedAt"`
 }
 
 type CompletionRule struct {
-	RoutineID  uuid.UUID
-	Recurrence string
-	Active     bool
+	RoutineId  int64  `json:"routineId"`
+	Recurrence string `json:"recurrence"`
+	Active     bool   `json:"active"`
 }

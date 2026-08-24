@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"time"
 
-	completion_errors "github.com/MikebangSfilya/tree-tracker/pkg/completion errors"
+	completion_errors "github.com/MikebangSfilya/tree-tracker/pkg/completionErrors"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -22,9 +22,8 @@ type CompletionRepository interface {
 	Complete(ctx context.Context, completion Completion) (Completion, error)
 	GetCompletions(ctx context.Context, userID uuid.UUID) ([]Completion, error)
 }
-
 type RoutineFetcher interface {
-	GetCompletionRule(ctx context.Context, uuid uuid.UUID) (*CompletionRule, error)
+	GetCompletionRule(ctx context.Context, routineId int64) (*CompletionRule, error)
 }
 
 func NewCompletionService1(repository CompletionRepository, routineFetcher RoutineFetcher, logger slog.Logger) *CompletionService1 {
@@ -35,7 +34,7 @@ func NewCompletionService1(repository CompletionRepository, routineFetcher Routi
 }
 
 func (s *CompletionService1) RoutineComplete(ctx context.Context, input CompleteInput) (Completion, error) {
-	rule, err := s.routineFetcher.GetCompletionRule(ctx, input.RoutineID)
+	rule, err := s.routineFetcher.GetCompletionRule(ctx, input.RoutineId)
 	if err != nil {
 		s.logger.Error("failed to get completion rule")
 		return Completion{}, fmt.Errorf("failed to get completion rule: %w", err)
@@ -50,8 +49,8 @@ func (s *CompletionService1) RoutineComplete(ctx context.Context, input Complete
 	s.logger.Debug("completion rule occurred", slog.String("key", occurrenceKey))
 
 	completion := Completion{
-		UserID:        input.UserID,
-		RoutineID:     input.RoutineID,
+		UserId:        input.UserId,
+		RoutineId:     input.RoutineId,
 		OccurrenceKey: occurrenceKey,
 	}
 	result, err := s.repository.Complete(ctx, completion)

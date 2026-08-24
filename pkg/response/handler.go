@@ -2,11 +2,8 @@ package pkg_response
 
 import (
 	"encoding/json"
-	"errors"
 	"log/slog"
 	"net/http"
-
-	completion_errors "github.com/MikebangSfilya/tree-tracker/pkg/completion errors"
 )
 
 type HTTPResponseHandler struct {
@@ -30,37 +27,11 @@ func (h *HTTPResponseHandler) WriteJSON(data any, statusCode int) {
 	}
 }
 
-func (h *HTTPResponseHandler) ErrorResponse(err error) {
-	var (
-		statusCode int
-		msg        string
-	)
-
-	switch {
-	case errors.Is(err, completion_errors.ErrAlreadyCompleted):
-		statusCode = http.StatusConflict
-		msg = "routine is already completed"
-	case errors.Is(err, completion_errors.ErrAlreadyCompletedToday):
-		statusCode = http.StatusConflict
-		msg = "routine had already been completed today"
-	default:
-		statusCode = http.StatusInternalServerError
-		msg = "failed to complete routine"
-	}
-
-	h.writeError(statusCode, msg, err)
-}
-
-func (h *HTTPResponseHandler) writeError(code int, message string, err error) {
-	errMsg := ""
-	if err != nil {
-		errMsg = err.Error()
-	}
-
-	response := map[string]string{
-		"error":   errMsg,
+func (h *HTTPResponseHandler) WriteError(statusCode int, message string) {
+	response := map[string]any{
 		"message": message,
+		"status":  statusCode,
 	}
 
-	h.WriteJSON(response, code)
+	h.WriteJSON(response, statusCode)
 }
