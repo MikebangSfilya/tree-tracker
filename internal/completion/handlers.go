@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
-	completion_errors "github.com/MikebangSfilya/tree-tracker/pkg/completionErrors"
+	completion_errors "github.com/MikebangSfilya/tree-tracker/pkg/errors"
 	pkg_response "github.com/MikebangSfilya/tree-tracker/pkg/response"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -51,7 +51,7 @@ func (h *CompletionHandler) GetCompletions(w http.ResponseWriter, r *http.Reques
 	response := make([]CompletionResponse, 0, len(completions))
 	for _, completion := range completions {
 		response = append(response, CompletionResponse{
-			RoutineID:   completion.RoutineID,
+			RoutineID:   completion.RoutineId,
 			CompletedAt: completion.CompletedAt,
 		})
 	}
@@ -83,7 +83,7 @@ func (h *CompletionHandler) RoutineComplete(w http.ResponseWriter, r *http.Reque
 
 	responseHandler.WriteJSON(
 		CompletionResponse{
-			RoutineID:   completion.RoutineID,
+			RoutineID:   completion.RoutineId,
 			CompletedAt: completion.CompletedAt,
 		},
 		http.StatusOK)

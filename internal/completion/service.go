@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"time"
 
-	completion_errors "github.com/MikebangSfilya/tree-tracker/pkg/completionErrors"
+	completion_errors "github.com/MikebangSfilya/tree-tracker/pkg/errors"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 )

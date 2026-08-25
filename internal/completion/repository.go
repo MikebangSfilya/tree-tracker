@@ -32,11 +32,11 @@ func (s *CompletionRepository1) Complete(ctx context.Context, completion Complet
 	err := s.QueryRow(
 		ctx,
 		query,
-		completion.UserID,
-		completion.RoutineID,
-		completion.OccurrenceKey).Scan(&result.ID,
-		&result.UserID,
-		&result.RoutineID,
+		completion.UserId,
+		completion.RoutineId,
+		completion.OccurrenceKey).Scan(&result.Id,
+		&result.UserId,
+		&result.RoutineId,
 		&result.OccurrenceKey,
 		&result.CompletedAt)
 	if err != nil {
@@ -60,9 +60,9 @@ func (s *CompletionRepository1) GetCompletions(ctx context.Context, userID uuid.
 	var completions []Completion
 	for rows.Next() {
 		var completion Completion
-		if err = rows.Scan(&completion.ID,
-			&completion.UserID,
-			&completion.RoutineID,
+		if err = rows.Scan(&completion.Id,
+			&completion.UserId,
+			&completion.RoutineId,
 			&completion.OccurrenceKey,
 			&completion.CompletedAt); err != nil {
 			s.logger.Error("failed to scan completions", "err", err)
