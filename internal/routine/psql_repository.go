@@ -5,15 +5,22 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
-type postgresRepository struct {
-	db *pgx.Conn
+type Querier interface {
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
 }
 
-func NewPostgresRepository(db *pgx.Conn) Repository {
+type postgresRepository struct {
+	q Querier
+}
+
+func NewPostgresRepository(q Querier) Repository {
 	return &postgresRepository{
-		db: db,
+		q: q,
 	}
 }
 
@@ -33,7 +40,7 @@ func (r *postgresRepository) GetAll(ctx context.Context) ([]Routine, error) {
 		ORDER BY id
 	`
 
-	rows, err := r.db.Query(ctx, query)
+	rows, err := r.q.Query(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +94,7 @@ func (r *postgresRepository) GetByID(ctx context.Context, id int64) (Routine, er
 
 	var routine Routine
 
-	err := r.db.QueryRow(ctx, query, id).Scan(
+	err := r.q.QueryRow(ctx, query, id).Scan(
 		&routine.ID,
 		&routine.Category,
 		&routine.Type,
@@ -137,7 +144,7 @@ func (r *postgresRepository) Create(
 
 	var created Routine
 
-	err := r.db.QueryRow(
+	err := r.q.QueryRow(
 		ctx,
 		query,
 		routine.Category,
@@ -194,7 +201,7 @@ func (r *postgresRepository) Update(
 
 	var routine Routine
 
-	err := r.db.QueryRow(
+	err := r.q.QueryRow(
 		ctx,
 		query,
 		id,
@@ -232,7 +239,7 @@ func (r *postgresRepository) Delete(ctx context.Context, id int64) error {
 		WHERE id = $1
 	`
 
-	result, err := r.db.Exec(ctx, query, id)
+	result, err := r.q.Exec(ctx, query, id)
 	if err != nil {
 		return err
 	}

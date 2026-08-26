@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type Handler struct {
@@ -18,9 +20,9 @@ func NewHandler(service Service) *Handler {
 	}
 }
 
-func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("/api/routines", h.routines)
-	mux.HandleFunc("/api/routines/", h.routine)
+func (h *Handler) RegisterRoutes(r chi.Router) {
+	r.HandleFunc("/api/routines", h.routines)
+	r.HandleFunc("/api/routine", h.routine)
 }
 
 func (h *Handler) routines(w http.ResponseWriter, r *http.Request) {

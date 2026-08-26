@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 
 	"github.com/google/uuid"
@@ -11,12 +10,18 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-type RepoDB struct {
-	db *sql.DB
+type Querier interface {
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
 }
 
-func NewRepoDB(db *sql.DB) *RepoDB {
-	return &RepoDB{db: db}
+type RepoDB struct {
+	q Querier
+}
+
+func NewRepoDB(q Querier) *RepoDB {
+	return &RepoDB{q}
 }
 
 func (r RepoDB) CreateUser(ctx context.Context, username, email string, password []byte) (*uuid.UUID, error) {
@@ -27,7 +32,7 @@ func (r RepoDB) CreateUser(ctx context.Context, username, email string, password
 	`
 
 	var id uuid.UUID
-	err := r.db.QueryRowContext(ctx, q, username, email, password).Scan(&id)
+	err := r.q.QueryRow(ctx, q, username, email, password).Scan(&id)
 	if err != nil {
 		// check esli takoy email uje zaregan
 		var e *pgconn.PgError
@@ -49,7 +54,7 @@ func (r RepoDB) GetUser(ctx context.Context, email string) (*User, error) {
 	`
 
 	var user User
-	err := r.db.QueryRowContext(ctx, q, email).Scan(
+	err := r.q.QueryRow(ctx, q, email).Scan(
 		&user.ID,
 		&user.Username,
 		&user.Email,
@@ -58,7 +63,7 @@ func (r RepoDB) GetUser(ctx context.Context, email string) (*User, error) {
 	)
 	if err != nil {
 		// check esli takogo usera net
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrUserNotFound
 		}
 
@@ -74,18 +79,14 @@ func (r RepoDB) DeleteUser(ctx context.Context, email string) error {
 		WHERE email = $1;
 	`
 
-	res, err := r.db.ExecContext(ctx, q, email)
+	res, err := r.q.Exec(ctx, q, email)
 	if err != nil {
 		return err
 	}
 
-	rowsAff, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-
+	rowsAff := res.RowsAffected()
 	if rowsAff < 1 {
-		return ErrFailedToDeleteUser
+		return ErrUserNotFound
 	}
 
 	return nil

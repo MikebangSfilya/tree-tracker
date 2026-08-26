@@ -26,11 +26,11 @@ type RoutineFetcher interface {
 	GetCompletionRule(ctx context.Context, routineId int64) (*CompletionRule, error)
 }
 
-func NewCompletionService1(repository CompletionRepository, routineFetcher RoutineFetcher, logger slog.Logger) *CompletionService1 {
+func NewCompletionService1(repository CompletionRepository, routineFetcher RoutineFetcher, logger *slog.Logger) *CompletionService1 {
 	return &CompletionService1{
 		repository:     repository,
 		routineFetcher: routineFetcher,
-		logger:         &logger}
+		logger:         logger}
 }
 
 func (s *CompletionService1) RoutineComplete(ctx context.Context, input CompleteInput) (Completion, error) {

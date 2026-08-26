@@ -9,15 +9,20 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+type Querier interface {
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+}
+
 type CompletionRepository1 struct {
-	*pgx.Conn
+	q      Querier
 	logger *slog.Logger
 }
 
-func NewCompletionRepository1(conn *pgx.Conn, logger slog.Logger) *CompletionRepository1 {
+func NewCompletionRepository1(q Querier, logger *slog.Logger) *CompletionRepository1 {
 	return &CompletionRepository1{
-		Conn:   conn,
-		logger: &logger,
+		q:      q,
+		logger: logger,
 	}
 }
 
@@ -29,7 +34,7 @@ func (s *CompletionRepository1) Complete(ctx context.Context, completion Complet
 	`
 
 	var result Completion
-	err := s.QueryRow(
+	err := s.q.QueryRow(
 		ctx,
 		query,
 		completion.UserId,
@@ -51,7 +56,7 @@ func (s *CompletionRepository1) GetCompletions(ctx context.Context, userID uuid.
 	query := `
 		SELECT id, user_id, routine_id, occurrence_key, completed_at FROM completions WHERE user_id = $1;
 `
-	rows, err := s.Query(ctx, query, userID)
+	rows, err := s.q.Query(ctx, query, userID)
 	if err != nil {
 		s.logger.Error("failed to get completions", "err", err)
 		return nil, fmt.Errorf("get completions: %w", err)
@@ -73,4 +78,8 @@ func (s *CompletionRepository1) GetCompletions(ctx context.Context, userID uuid.
 
 	return completions, nil
 
+}
+
+func (s *CompletionRepository1) GetCompletionRule(ctx context.Context, routineId int64) (*CompletionRule, error) {
+	return nil, nil
 }

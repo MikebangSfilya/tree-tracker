@@ -39,7 +39,6 @@ func (s Service) Register(ctx context.Context, username, email, password string)
 	if err != nil {
 		s.logger.Error(
 			"failed to hash password",
-			"password string", password,
 			"error", err,
 		)
 		return "", err

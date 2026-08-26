@@ -21,15 +21,17 @@ type Handler struct {
 	srv ServiceMethods
 }
 
-func NewHandler(srv ServiceMethods) *Handler {
-	return &Handler{srv: srv}
+func NewHandler(logger *slog.Logger, srv ServiceMethods) *Handler {
+	return &Handler{
+		logger: logger,
+		srv:    srv,
+	}
 }
 
 func (h Handler) Routes(r chi.Router) {
-	// assuming basic route is `/api/`
-	r.Post("/user", h.register)
-	r.Get("/user", h.getUser)
-	r.Delete("/user", h.deleteUser)
+	r.Post("/api/user", h.register)
+	r.Get("/api/user", h.getUser)
+	r.Delete("/api/user", h.deleteUser)
 }
 
 func (h Handler) register(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +39,7 @@ func (h Handler) register(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&userData)
 	if err != nil {
 		h.logger.Error("failed to decode", "error", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		h.writeBadRequest(w, "invalid request body")
 		return
 	}
 
@@ -48,27 +50,11 @@ func (h Handler) register(w http.ResponseWriter, r *http.Request) {
 		userData.Password,
 	)
 	if err != nil {
-		if err == ErrUserAlreadyExists {
-			http.Error(w, ErrUserAlreadyExists.Error(), http.StatusBadRequest)
-			return
-		}
-
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		h.writeError(w, err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-
-	var idResp = CreateResp{ID: id}
-	err = json.NewEncoder(w).Encode(idResp)
-	if err != nil {
-		h.logger.Error("failed to encode",
-			"id", idResp.ID,
-			"error", err,
-		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	h.writeJSON(w, http.StatusCreated, CreateResp{ID: id})
 }
 
 func (h Handler) getUser(w http.ResponseWriter, r *http.Request) {
@@ -76,38 +62,22 @@ func (h Handler) getUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&emailData)
 	if err != nil {
 		h.logger.Error("failed to decode", "error", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		h.writeBadRequest(w, "invalid request body")
 		return
 	}
 
 	user, err := h.srv.GetUser(r.Context(), emailData.Email)
 	if err != nil {
-		if err == ErrUserNotFound {
-			http.Error(w, ErrUserNotFound.Error(), http.StatusBadRequest)
-			return
-		}
-
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		h.writeError(w, err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-
-	var userResp = GetResp{
+	h.writeJSON(w, http.StatusOK, GetResp{
 		ID:        user.ID.String(),
 		Username:  user.Username,
 		Email:     user.Email,
-		CreatedAt: user.CreatedAt.String(),
-	}
-	err = json.NewEncoder(w).Encode(userResp)
-	if err != nil {
-		h.logger.Error("failed to encode",
-			"id", userResp.ID,
-			"error", err,
-		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+		CreatedAt: user.CreatedAt,
+	})
 }
 
 func (h Handler) deleteUser(w http.ResponseWriter, r *http.Request) {
@@ -115,26 +85,15 @@ func (h Handler) deleteUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&emailData)
 	if err != nil {
 		h.logger.Error("failed to decode", "error", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		h.writeBadRequest(w, "invalid request body")
 		return
 	}
 
 	err = h.srv.DeleteUser(r.Context(), emailData.Email)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		h.writeError(w, err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-
-	var deleteResp = DeleteResp{Deleted: true}
-	err = json.NewEncoder(w).Encode(deleteResp)
-	if err != nil {
-		h.logger.Error("failed to encode",
-			"email", emailData.Email,
-			"error", err,
-		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	w.WriteHeader(http.StatusNoContent)
 }
