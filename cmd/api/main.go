@@ -92,10 +92,15 @@ func reg(ctx context.Context, logger *slog.Logger, config *config.Config) (*http
 	routineRepo := routine.NewPostgresRepository(pool)
 	userRepo := user.NewRepoDB(pool)
 
-	completionServ := completion.NewCompletionService1(completionRepo, completionRepo, logger)
 	plantServ := plant.NewService(plantRepo)
 	routineServ := routine.NewService(routineRepo)
 	userServ := user.NewService(logger, userRepo)
+
+	completionServ := completion.NewCompletionService1(
+		completionRepo,
+		routineFetcherAdapter{service: routineServ},
+		logger,
+	)
 
 	completionHandler := completion.NewCompletionHandler(completionServ)
 	plantHandler := plant.NewHandler(plantServ, logger)
@@ -144,4 +149,24 @@ func initLogger() *slog.Logger {
 
 	slog.SetDefault(logger)
 	return logger
+}
+
+type routineFetcherAdapter struct {
+	service routine.Service
+}
+
+func (a routineFetcherAdapter) GetCompletionRule(
+	ctx context.Context,
+	routineID int64,
+) (*completion.CompletionRule, error) {
+	rule, err := a.service.GetCompletionRule(ctx, routineID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &completion.CompletionRule{
+		RoutineId:  rule.RoutineId,
+		Recurrence: rule.Recurrence,
+		Active:     rule.Active,
+	}, nil
 }

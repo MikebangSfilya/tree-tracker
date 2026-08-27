@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"strings"
+
+	"github.com/MikebangSfilya/tree-tracker/internal/completion"
 )
 
 var (
@@ -19,6 +21,7 @@ type Service interface {
 	Create(ctx context.Context, request CreateRequest) (Routine, error)
 	Update(ctx context.Context, id int64, request UpdateRequest) (Routine, error)
 	Delete(ctx context.Context, id int64) error
+	GetCompletionRule(ctx context.Context, routineID int64) (*completion.CompletionRule, error)
 }
 
 type service struct {
@@ -158,4 +161,26 @@ func isValidWeight(weight int) bool {
 
 func isValidCoefficient(coefficient int) bool {
 	return coefficient >= 1 && coefficient <= 5
+}
+
+func (s *service) GetCompletionRule(
+	ctx context.Context,
+	routineID int64,
+) (*completion.CompletionRule, error) {
+	routine, err := s.repository.GetByID(ctx, routineID)
+	if err != nil {
+		return nil, err
+	}
+
+	recurrence := "daily"
+
+	if routine.Disposable {
+		recurrence = "once"
+	}
+
+	return &completion.CompletionRule{
+		RoutineId:  routine.ID,
+		Recurrence: recurrence,
+		Active:     true,
+	}, nil
 }
