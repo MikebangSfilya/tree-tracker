@@ -1,6 +1,7 @@
 package routine
 
 type Response struct {
+	ID          int64    `json:"id"`
 	Category    string   `json:"category"`
 	Type        string   `json:"type"`
 	Weight      int      `json:"weight"`
@@ -15,6 +16,7 @@ type TimeType struct {
 
 func NewResponse(routine Routine) Response {
 	return Response{
+		ID:          routine.ID,
 		Category:    routine.Category,
 		Type:        routine.Type,
 		Weight:      routine.Weight,
