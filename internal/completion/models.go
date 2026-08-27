@@ -7,7 +7,7 @@ import (
 )
 
 type Completion struct {
-	Id            uuid.UUID `json:"id"`
+	Id            int64     `json:"completionId"`
 	UserId        uuid.UUID `json:"userId"`
 	RoutineId     int64     `json:"routineId"`
 	OccurrenceKey string    `json:"occurrenceKey"`

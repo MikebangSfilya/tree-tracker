@@ -51,6 +51,7 @@ func (h *CompletionHandler) GetCompletions(w http.ResponseWriter, r *http.Reques
 	response := make([]CompletionResponse, 0, len(completions))
 	for _, completion := range completions {
 		response = append(response, CompletionResponse{
+			Id:          completion.Id,
 			RoutineID:   completion.RoutineId,
 			CompletedAt: completion.CompletedAt,
 		})
@@ -83,6 +84,7 @@ func (h *CompletionHandler) RoutineComplete(w http.ResponseWriter, r *http.Reque
 
 	responseHandler.WriteJSON(
 		CompletionResponse{
+			Id:          completion.Id,
 			RoutineID:   completion.RoutineId,
 			CompletedAt: completion.CompletedAt,
 		},

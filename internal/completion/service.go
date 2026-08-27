@@ -22,6 +22,7 @@ type CompletionRepository interface {
 	Complete(ctx context.Context, completion Completion) (Completion, error)
 	GetCompletions(ctx context.Context, userID uuid.UUID) ([]Completion, error)
 }
+
 type RoutineFetcher interface {
 	GetCompletionRule(ctx context.Context, routineId int64) (*CompletionRule, error)
 }
