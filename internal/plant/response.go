@@ -1,5 +1,7 @@
 package plant
 
+import "math"
+
 // ratioScale is a temporary mapping from integer DB values to the 0..1 JSON
 // contract. Growth rules are out of scope; this is DTO conversion only.
 const ratioScale = 100.0
@@ -31,4 +33,22 @@ func NewResponse(p Plant) Response {
 
 func toRatio(v int) float64 {
 	return float64(v) / ratioScale
+}
+
+func fromRatio(v float64) int {
+	return int(math.Round(v * ratioScale))
+}
+
+// PlantFromResponse maps the issued JSON contract back to stored integer fields.
+func PlantFromResponse(r Response) Plant {
+	return Plant{
+		Epoch:         r.Epoch,
+		Phase:         r.Phase,
+		PhaseProgress: fromRatio(r.PhaseProgress),
+		Branching:     fromRatio(r.Branching),
+		Density:       fromRatio(r.Density),
+		Curvature:     fromRatio(r.Curvature),
+		Vitality:      fromRatio(r.Vitality),
+		Seed:          r.Seed,
+	}
 }

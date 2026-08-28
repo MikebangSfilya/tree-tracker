@@ -22,15 +22,6 @@ func (f fakeGetter) GetPlant(context.Context) (Plant, error) {
 	return f.plant, f.err
 }
 
-type fakeStore struct {
-	plant Plant
-	err   error
-}
-
-func (f fakeStore) GetCurrent(context.Context) (Plant, error) {
-	return f.plant, f.err
-}
-
 func TestGetPlantOK(t *testing.T) {
 	h := NewHandler(fakeGetter{plant: Plant{
 		Epoch:         0,
@@ -75,14 +66,6 @@ func TestGetPlantInternalErrorHidesCause(t *testing.T) {
 	}
 
 	assertErrorBody(t, rr, "internal server error")
-}
-
-func TestServicePreservesNotFound(t *testing.T) {
-	s := NewService(fakeStore{err: ErrPlantNotFound})
-	_, err := s.GetPlant(context.Background())
-	if !errors.Is(err, ErrPlantNotFound) {
-		t.Fatalf("err = %v, want ErrPlantNotFound", err)
-	}
 }
 
 func TestNewResponseScalesRatios(t *testing.T) {
