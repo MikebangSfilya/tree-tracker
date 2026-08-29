@@ -98,6 +98,9 @@ func reg(ctx context.Context, logger *slog.Logger, config *config.Config) (*http
 	plantServ := plant.NewService(plantRepo)
 	routineServ := routine.NewService(routineRepo)
 	userServ := user.NewService(logger, userRepo)
+	if _, err := userServ.EnsureDemoUser(ctx); err != nil {
+		return nil, fmt.Errorf("ensure demo user: %w", err)
+	}
 
 	completionHandler := completion.NewCompletionHandler(progressServ)
 	plantHandler := plant.NewHandler(plantServ, logger)

@@ -78,6 +78,58 @@ func TestServiceRegisterReturnsRepositoryError(t *testing.T) {
 	}
 }
 
+func TestServiceEnsureDemoUser(t *testing.T) {
+	t.Parallel()
+
+	wantID := uuid.New()
+	repo := stubRepository{
+		getUser: func(_ context.Context, email string) (*User, error) {
+			if email != demoEmail {
+				t.Fatalf("email = %q, want %q", email, demoEmail)
+			}
+			return nil, ErrUserNotFound
+		},
+		createUser: func(_ context.Context, username, email string, password []byte) (*uuid.UUID, error) {
+			if username != demoUsername || email != demoEmail {
+				t.Fatalf("user = (%q, %q), want demo user", username, email)
+			}
+			if err := bcrypt.CompareHashAndPassword(password, []byte(demoPassword)); err != nil {
+				t.Fatalf("stored password is not a valid hash: %v", err)
+			}
+			return &wantID, nil
+		},
+	}
+
+	gotID, err := NewService(testLogger(), repo).EnsureDemoUser(context.Background())
+	if err != nil {
+		t.Fatalf("EnsureDemoUser() error = %v", err)
+	}
+	if gotID != wantID.String() {
+		t.Fatalf("EnsureDemoUser() id = %q, want %q", gotID, wantID)
+	}
+}
+
+func TestServiceEnsureDemoUserKeepsExistingUser(t *testing.T) {
+	t.Parallel()
+
+	want := &User{ID: uuid.New(), Username: demoUsername, Email: demoEmail}
+	repo := stubRepository{
+		getUser: func(context.Context, string) (*User, error) { return want, nil },
+		createUser: func(context.Context, string, string, []byte) (*uuid.UUID, error) {
+			t.Fatal("CreateUser() must not run for an existing demo user")
+			return nil, nil
+		},
+	}
+
+	gotID, err := NewService(testLogger(), repo).EnsureDemoUser(context.Background())
+	if err != nil {
+		t.Fatalf("EnsureDemoUser() error = %v", err)
+	}
+	if gotID != want.ID.String() {
+		t.Fatalf("EnsureDemoUser() id = %q, want %q", gotID, want.ID)
+	}
+}
+
 func TestServiceGetUser(t *testing.T) {
 	t.Parallel()
 

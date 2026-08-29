@@ -8,10 +8,17 @@ package user
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+)
+
+const (
+	demoUsername = "Demo user"
+	demoEmail    = "demo@tree-tracker.local"
+	demoPassword = "demo-tree-2026"
 )
 
 type RepoMethods interface {
@@ -51,6 +58,28 @@ func (s Service) Register(ctx context.Context, username, email, password string)
 	}
 
 	return id.String(), nil
+}
+
+func (s Service) EnsureDemoUser(ctx context.Context) (string, error) {
+	existing, err := s.r.GetUser(ctx, demoEmail)
+	if err == nil {
+		return existing.ID.String(), nil
+	}
+	if !errors.Is(err, ErrUserNotFound) {
+		s.logger.Error("failed to find demo user", "error", err)
+		return "", err
+	}
+
+	id, err := s.Register(ctx, demoUsername, demoEmail, demoPassword)
+	if !errors.Is(err, ErrUserAlreadyExists) {
+		return id, err
+	}
+
+	existing, err = s.r.GetUser(ctx, demoEmail)
+	if err != nil {
+		return "", err
+	}
+	return existing.ID.String(), nil
 }
 
 // not implemented
