@@ -79,7 +79,3 @@ func (s *CompletionRepository1) GetCompletions(ctx context.Context, userID uuid.
 	return completions, nil
 
 }
-
-func (s *CompletionRepository1) GetCompletionRule(ctx context.Context, routineId int64) (*CompletionRule, error) {
-	return nil, nil
-}

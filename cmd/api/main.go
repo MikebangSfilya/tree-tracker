@@ -14,6 +14,7 @@ import (
 	"github.com/MikebangSfilya/tree-tracker/internal/completion"
 	"github.com/MikebangSfilya/tree-tracker/internal/config"
 	"github.com/MikebangSfilya/tree-tracker/internal/plant"
+	"github.com/MikebangSfilya/tree-tracker/internal/progress"
 	"github.com/MikebangSfilya/tree-tracker/internal/routine"
 	"github.com/MikebangSfilya/tree-tracker/internal/user"
 
@@ -89,15 +90,16 @@ func reg(ctx context.Context, logger *slog.Logger, config *config.Config) (*http
 
 	completionRepo := completion.NewCompletionRepository1(pool, logger)
 	plantRepo := plant.NewRepository(pool)
+	progressRepo := progress.NewRepository(pool)
 	routineRepo := routine.NewPostgresRepository(pool)
 	userRepo := user.NewRepoDB(pool)
 
-	completionServ := completion.NewCompletionService1(completionRepo, completionRepo, logger)
+	progressServ := progress.NewService(progressRepo, completionRepo)
 	plantServ := plant.NewService(plantRepo)
 	routineServ := routine.NewService(routineRepo)
 	userServ := user.NewService(logger, userRepo)
 
-	completionHandler := completion.NewCompletionHandler(completionServ)
+	completionHandler := completion.NewCompletionHandler(progressServ)
 	plantHandler := plant.NewHandler(plantServ, logger)
 	routineHandler := routine.NewHandler(routineServ)
 	userHandler := user.NewHandler(logger, userServ)
