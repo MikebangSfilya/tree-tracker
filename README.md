@@ -25,6 +25,16 @@ migrations/
 
 ## Запуск через Docker
 
+Чтобы запустить фронтенд и API вместе из корня репозитория:
+
+```bash
+docker compose up --build
+```
+
+Интерфейс будет доступен на `http://localhost:8081`, API — на `http://localhost:8080`.
+
+Для запуска только API:
+
 1. Скопировать настройки: `cp .env.example .env`.
 2. Запустить приложение и PostgreSQL: `docker compose up --build`.
 

@@ -1,0 +1,15 @@
+package completion
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type Completion struct {
+	Id            int64     `json:"completionId"`
+	UserId        uuid.UUID `json:"userId"`
+	RoutineId     int64     `json:"routineId"`
+	OccurrenceKey string    `json:"occurrenceKey"`
+	CompletedAt   time.Time `json:"completedAt"`
+}
