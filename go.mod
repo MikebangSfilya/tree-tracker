@@ -1,6 +1,6 @@
 module github.com/MikebangSfilya/tree-tracker
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/go-chi/chi/v5 v5.3.2
@@ -8,7 +8,7 @@ require (
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/jackc/pgerrcode v0.0.0-20250907135507-afb5586c32a6
 	github.com/jackc/pgx/v5 v5.10.0
-	golang.org/x/crypto v0.55.0
+	golang.org/x/crypto v0.56.0
 )
 
 require (
